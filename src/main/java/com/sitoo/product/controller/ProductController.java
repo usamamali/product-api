@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
+import java.util.Map;
 
 @Api(value = "products", tags = {"products"})
 @RestController
@@ -87,11 +88,10 @@ public class ProductController {
             @ApiResponse(code = 500, message = "Internal Server Error", response = ApiErrorMessage.class)})
     @RequestMapping(value = "/products/{productId}", method = RequestMethod.PUT, produces = {"application/json"}, consumes = {"application/json"})
     public ResponseEntity<Boolean> updateProduct(
-            @ApiParam(value = "Product object that needs to be updated", required = true) @Valid @RequestBody Product product,
+            @ApiParam(value = "Product object that needs to be updated", required = true) @Valid @RequestBody Map<String, Object> product,
             @ApiParam(value = "ID of product to update", required = true) @PathVariable("productId") Integer productId) {
-
-        product.setProductId(productId);
-        productService.updateProduct(product);
+        
+        productService.updateProduct(productId, product);
         return ResponseEntity.status(HttpStatus.OK).body(Boolean.TRUE);
     }
 

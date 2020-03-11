@@ -1,6 +1,9 @@
 package com.sitoo.product.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sitoo.product.exception.*;
+import com.sitoo.product.model.Attribute;
 import com.sitoo.product.model.Product;
 import com.sitoo.product.model.SearchResult;
 import com.sitoo.product.repository.ProductJPARepository;
@@ -12,7 +15,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -57,46 +63,82 @@ public class ProductService {
         return productRepository.save(product).getProductId();
     }
 
-    public Integer updateProduct(Product product) {
+    public Integer updateProduct(Integer productId, Map<String, Object> productDetails) {
 
-        Product existProduct = productRepository.findById(product.getProductId())
-                .orElseThrow(() -> new ProductNotFoundException(String.format("Product with productId (%s) does not exist", product.getProductId())));
+        Product existProduct = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException(String.format("Product with productId (%s) does not exist", productId)));
 
-        if (product.getTitle() != null)
-            existProduct.setTitle(product.getTitle());
+        if (productDetails.keySet().contains("title")) {
+            if (Optional.ofNullable(productDetails.get("title")).isEmpty() || ((String) productDetails.get("title")).isBlank())
+                throw new ProductTitleIsMissingException();
 
-        if (product.getSku() != null && !existProduct.getSku().equalsIgnoreCase(product.getSku())) {
-            if (productRepository.existsBySku(product.getSku()))
-                throw new ProductSkuAlreadyExistException(product.getSku());
-            existProduct.setSku(product.getSku());
+            existProduct.setTitle((String) productDetails.get("title"));
         }
 
-        if (Optional.ofNullable(product.getBarcodes()).isPresent()) {
+        if (productDetails.keySet().contains("sku")) {
+            if (Optional.ofNullable(productDetails.get("sku")).isEmpty() || ((String) productDetails.get("sku")).isBlank())
+                throw new ProductSkuIsMissingException();
+            else {
+                String newSku = (String) productDetails.get("sku");
 
-            product.getBarcodes().stream().filter(barcode -> !barcode.isBlank())
-                    .filter(barcode -> !existProduct.getBarcodes().contains(barcode))
-                    .filter(barcode -> productRepository.existsByBarcodes(barcode))
-                    .forEach(barcode -> {
-                        if (productRepository.existsByBarcodes(barcode)) {
-                            throw new ProductBarcodeAlreadyExistException(barcode);
-                        }
-                    });
+                if (productRepository.existsBySku(newSku))
+                    throw new ProductSkuAlreadyExistException(newSku);
 
-            existProduct.setBarcodes(product.getBarcodes());
+                existProduct.setSku(newSku);
+            }
         }
 
+        if (productDetails.keySet().contains("barcodes")) {
+            List<String> newBarcodes = (ArrayList<String>) productDetails.get("barcodes");
 
-        if (product.getDescription() != null)
-            existProduct.setDescription(product.getDescription());
+            if (Optional.ofNullable(newBarcodes).isPresent()) {
 
-        if (product.getAttributes() != null)
-            existProduct.setAttributes(product.getAttributes());
+                for (String barcode : newBarcodes) {
 
-        if (product.getPrice() != null)
-            existProduct.setPrice(product.getPrice());
+                    if (Optional.ofNullable(barcode).isEmpty() || barcode.isBlank())
+                        throw new ProductBarcodeIsMissingException();
+
+                    if (newBarcodes.stream().filter(bcode -> barcode.equalsIgnoreCase(bcode)).count() > 1)
+                        throw new ProductBarcodeIsRepeatedException(barcode);
+
+                    if ((Optional.ofNullable(existProduct.getBarcodes()).isEmpty() || !existProduct.getBarcodes().contains(barcode)) && productRepository.existsByBarcodes(barcode))
+                        throw new ProductBarcodeAlreadyExistException(barcode);
+                }
+            }
+
+            existProduct.setBarcodes(newBarcodes);
+        }
+
+        if (productDetails.keySet().contains("description"))
+            existProduct.setDescription((String) productDetails.get("description"));
+
+        if (productDetails.keySet().contains("attributes")) {
+
+            List<Attribute> attributes = null;
+
+            if (Optional.ofNullable(productDetails.get("attributes")).isPresent()) {
+
+                attributes = (new ObjectMapper()).convertValue(productDetails.get("attributes"), new TypeReference<List<Attribute>>() {
+                });
+
+                for (Attribute attribute : attributes) {
+                    if (Optional.ofNullable(attribute.getName()).isEmpty())
+                        throw new ProductAttributeNameIsMissingException();
+                    if (attributes.stream().filter(att -> attribute.equals(att)).count() > 1)
+                        throw new ProductAttributeIsRepeatedException(attribute.getName());
+                }
+            }
+            existProduct.setAttributes(attributes);
+        }
+
+        if (productDetails.keySet().contains("price")) {
+            if (Optional.ofNullable(productDetails.get("price")).isEmpty())
+                existProduct.setPrice(BigDecimal.ZERO);
+            else
+                existProduct.setPrice(BigDecimal.valueOf(Double.valueOf(productDetails.get("price") + "")));
+        }
 
         return productRepository.save(existProduct).getProductId();
-
     }
 
     public void deleteProduct(Integer productId) {

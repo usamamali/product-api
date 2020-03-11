@@ -26,7 +26,9 @@ public class GlobalExceptionHandlerController {
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler({ProductSkuAlreadyExistException.class, ProductBarcodeAlreadyExistException.class, ProductSkuIsMissingException.class, ProductTitleIsMissingException.class})
+    @ExceptionHandler({ProductSkuAlreadyExistException.class, ProductBarcodeAlreadyExistException.class, ProductBarcodeIsMissingException.class,
+            ProductBarcodeIsRepeatedException.class, ProductSkuIsMissingException.class, ProductTitleIsMissingException.class,
+            ProductAttributeNameIsMissingException.class, ProductAttributeIsRepeatedException.class})
     public ApiErrorMessage handleProductSkuExceptions(RuntimeException e) {
         log.error(e.getMessage(), e);
         return new ApiErrorMessage(e.getMessage());
