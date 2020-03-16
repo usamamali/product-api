@@ -8,7 +8,7 @@
         <version>2.2.5.RELEASE</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.sitoo</groupId>
+    <groupId>com.api</groupId>
     <artifactId>product-api</artifactId>
     <version>1.0.0</version>
     <name>product-api</name>

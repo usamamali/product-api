@@ -13,7 +13,7 @@ A simple REST API to manage products.
     
 
 ## Requirements
-Design a REST PRODUCT API that can manage CRUD operations. More details are provided by Sitoo documentations.
+Design a REST PRODUCT API that can manage CRUD operations.
 
 ## Solution
 
@@ -34,7 +34,7 @@ Per the requirement, I have designed a Java based REST API /api/products
 ```shell
   Update src/main/resources/application.properties file with DB configurations
 
-  spring.datasource.url=jdbc:mysql://localhost:32771/sitoo_test_assignment
+  spring.datasource.url=jdbc:mysql://localhost:32771/product_schema
   spring.datasource.username=root
   spring.datasource.password=pass
 ```

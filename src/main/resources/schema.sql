@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS `sitoo_test_assignment`.`product` (
+create TABLE IF NOT EXISTS `product_schema`.`product` (
     `product_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
     `title` VARCHAR ( 32 ) NOT NULL ,
     `sku` VARCHAR ( 32 ) NOT NULL ,
@@ -12,13 +12,13 @@ CREATE TABLE IF NOT EXISTS `sitoo_test_assignment`.`product` (
     INDEX ( `last_updated` )
 );
 
-CREATE TABLE IF NOT EXISTS `sitoo_test_assignment` . `product_barcode` (
+create TABLE IF NOT EXISTS `product_schema` . `product_barcode` (
     `product_id` INT UNSIGNED NOT NULL ,
     `barcode` VARCHAR ( 32 ) NOT NULL ,
     PRIMARY KEY ( `product_id` , `barcode` ),
     UNIQUE INDEX ( `barcode` )
 );
-CREATE TABLE IF NOT EXISTS `sitoo_test_assignment` . `product_attribute` (
+create TABLE IF NOT EXISTS `product_schema` . `product_attribute` (
     `product_id` INT UNSIGNED NOT NULL ,
     `name` VARCHAR ( 16 ) NOT NULL ,
     `value` VARCHAR ( 32 ) NOT NULL ,
